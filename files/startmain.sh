@@ -10,8 +10,7 @@ SWIFT_PART_HOURS=${SWIFT_PART_HOURS:-1}
 SWIFT_REPLICAS=${SWIFT_REPLICAS:-1}
 SWIFT_PWORKERS=${PROXY_WORKERS:-8}
 SWIFT_OWORKERS=${OBJECT_WORKERS:-8}
-SWIFT_OBJECT_NODE=${OBJECT_NODE:-172.17.0.3}
-
+SWIFT_OBJECT_NODES=${OBJECT_NODE:-172.17.0.3:6010}
 
 if [ -e /srv/account.builder ]; then
 	echo "Ring files already exist in /srv, copying them to /etc/swift..."
@@ -29,18 +28,24 @@ cd /etc/swift
 # 1 replica only
 
 echo "Ring files, creating them..."
+for $SWIFT_OBJECT_NODE  in $(echo $SWIFT_OBJECT_NODES | tr ";" "\n"); do
 
-swift-ring-builder object.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
-swift-ring-builder object.builder add r1z1-${SWIFT_OBJECT_NODE}:6010/sdb1 1
-swift-ring-builder object.builder rebalance
-swift-ring-builder container.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
-swift-ring-builder container.builder add r1z1-${SWIFT_OBJECT_NODE}:6011/sdb1 1
-swift-ring-builder container.builder rebalance
-swift-ring-builder account.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
-swift-ring-builder account.builder add r1z1-${SWIFT_OBJECT_NODE}:6012/sdb1 1
-swift-ring-builder account.builder rebalance
+	# Calculate port
+	SWFIT_OBJECT_PORT=`sed "s/.*://g" <<< $SWIFT_OBJECT_NODE`
 
-echo $SWIFT_OBJECT_NODE > temp.txt
+	# create ring
+	swift-ring-builder object.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
+	swift-ring-builder object.builder add r1z1-${SWIFT_OBJECT_NODE}:$SWFIT_OBJECT_PORT/sdb1 1
+	swift-ring-builder object.builder rebalance
+	swift-ring-builder container.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
+	swift-ring-builder container.builder add r1z1-${SWIFT_OBJECT_NODE}:$(($SWFIT_OBJECT_PORT + 1))/sdb1 1
+	swift-ring-builder container.builder rebalance
+	swift-ring-builder account.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
+	swift-ring-builder account.builder add r1z1-${SWIFT_OBJECT_NODE}:$(($SWFIT_OBJECT_PORT + 2))/sdb1 1
+	swift-ring-builder account.builder rebalance
+done
+
+echo ${SWIFT_OBJECT_NODE}:$(($SWFIT_OBJECT_PORT + 2)) > temp.txt
 
 # Back these up for later use
 echo "Copying ring files to /srv to save them if it's a docker volume..."
