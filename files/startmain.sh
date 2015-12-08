@@ -31,14 +31,16 @@ cd /etc/swift
 echo "Ring files, creating them..."
 
 swift-ring-builder object.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
-swift-ring-builder object.builder add r1z1-${OBJECT_NODE}:6010/sdb1 1
+swift-ring-builder object.builder add r1z1-${SWIFT_OBJECT_NODE}:6010/sdb1 1
 swift-ring-builder object.builder rebalance
 swift-ring-builder container.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
-swift-ring-builder container.builder add r1z1-${OBJECT_NODE}:6011/sdb1 1
+swift-ring-builder container.builder add r1z1-${SWIFT_OBJECT_NODE}:6011/sdb1 1
 swift-ring-builder container.builder rebalance
 swift-ring-builder account.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
-swift-ring-builder account.builder add r1z1-${OBJECT_NODE}:6012/sdb1 1
+swift-ring-builder account.builder add r1z1-${SWIFT_OBJECT_NODE}:6012/sdb1 1
 swift-ring-builder account.builder rebalance
+
+echo $SWIFT_OBJECT_NODE > temp.txt
 
 # Back these up for later use
 echo "Copying ring files to /srv to save them if it's a docker volume..."
