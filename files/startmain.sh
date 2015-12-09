@@ -8,9 +8,8 @@
 SWIFT_PART_POWER=${SWIFT_PART_POWER:-7}
 SWIFT_PART_HOURS=${SWIFT_PART_HOURS:-1}
 SWIFT_REPLICAS=${SWIFT_REPLICAS:-1}
-SWIFT_PWORKERS=${PROXY_WORKERS:-8}
-SWIFT_OWORKERS=${OBJECT_WORKERS:-8}
-SWIFT_OBJECT_NODES=${OBJECT_NODES:-172.17.0.3:6010;172.17.0.4:6010}
+SWIFT_PWORKERS=${SWIFT_PWORKERS:-8}
+SWIFT_OBJECT_NODES=${SWIFT_OBJECT_NODES:-172.17.0.3:6010;172.17.0.4:6010}
 
 if [ -e /srv/account.builder ]; then
 	echo "Ring files already exist in /srv, copying them to /etc/swift..."
@@ -28,23 +27,28 @@ cd /etc/swift
 # 1 replica only
 
 echo "Ring files, creating them..."
+
+
+swift-ring-builder object.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
+swift-ring-builder container.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
+swift-ring-builder account.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
+
+
 for SWIFT_OBJECT_NODE  in $(echo $SWIFT_OBJECT_NODES | tr ";" "\n"); do
 
 	# Calculate port
         SWFIT_OBJECT_PORT=`sed "s/.*://g" <<< $SWIFT_OBJECT_NODE`
         SWIFT_OBJECT_NODE=`sed "s/:.*//g" <<< $SWIFT_OBJECT_NODE`
 
-	# create ring
-	swift-ring-builder object.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
+	# add files
 	swift-ring-builder object.builder add r1z1-${SWIFT_OBJECT_NODE}:$SWFIT_OBJECT_PORT/sdb1 1
-	swift-ring-builder object.builder rebalance
-	swift-ring-builder container.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
 	swift-ring-builder container.builder add r1z1-${SWIFT_OBJECT_NODE}:$(($SWFIT_OBJECT_PORT + 1))/sdb1 1
-	swift-ring-builder container.builder rebalance
-	swift-ring-builder account.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
 	swift-ring-builder account.builder add r1z1-${SWIFT_OBJECT_NODE}:$(($SWFIT_OBJECT_PORT + 2))/sdb1 1
-	swift-ring-builder account.builder rebalance
 done
+
+swift-ring-builder object.builder rebalance
+swift-ring-builder container.builder rebalance
+swift-ring-builder account.builder rebalance
 
 echo ${SWIFT_OBJECT_NODE}:$(($SWFIT_OBJECT_PORT + 2)) > temp.txt
 
@@ -75,7 +79,6 @@ fi
 
 # Set the number of proxy workers and object workers on fly
 sed -i "s/workers.*/workers = $SWIFT_PWORKERS/g" /etc/swift/proxy-server.conf
-sed -i "s/workers.*/workers = $SWIFT_OWORKERS/g" /etc/swift/object-server.conf
 
 # Start supervisord
 echo "Starting supervisord..."
