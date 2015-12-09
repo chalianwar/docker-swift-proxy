@@ -10,7 +10,7 @@ SWIFT_PART_HOURS=${SWIFT_PART_HOURS:-1}
 SWIFT_REPLICAS=${SWIFT_REPLICAS:-1}
 SWIFT_PWORKERS=${PROXY_WORKERS:-8}
 SWIFT_OWORKERS=${OBJECT_WORKERS:-8}
-SWIFT_OBJECT_NODES=${OBJECT_NODE:-172.17.0.3:6010}
+SWIFT_OBJECT_NODES=${OBJECT_NODES:-172.17.0.3:6010;172.17.0.4:6010}
 
 if [ -e /srv/account.builder ]; then
 	echo "Ring files already exist in /srv, copying them to /etc/swift..."
@@ -28,10 +28,11 @@ cd /etc/swift
 # 1 replica only
 
 echo "Ring files, creating them..."
-for $SWIFT_OBJECT_NODE  in $(echo $SWIFT_OBJECT_NODES | tr ";" "\n"); do
+for SWIFT_OBJECT_NODE  in $(echo $SWIFT_OBJECT_NODES | tr ";" "\n"); do
 
 	# Calculate port
-	SWFIT_OBJECT_PORT=`sed "s/.*://g" <<< $SWIFT_OBJECT_NODE`
+        SWFIT_OBJECT_PORT=`sed "s/.*://g" <<< $SWIFT_OBJECT_NODE`
+        SWIFT_OBJECT_NODE=`sed "s/:.*//g" <<< $SWIFT_OBJECT_NODE`
 
 	# create ring
 	swift-ring-builder object.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} ${SWIFT_PART_HOURS}
