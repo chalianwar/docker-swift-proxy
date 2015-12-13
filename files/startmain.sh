@@ -37,13 +37,14 @@ swift-ring-builder account.builder create ${SWIFT_PART_POWER} ${SWIFT_REPLICAS} 
 for SWIFT_OBJECT_NODE  in $(echo $SWIFT_OBJECT_NODES | tr ";" "\n"); do
 
 	# Calculate port
-        SWFIT_OBJECT_PORT=`sed "s/.*://g" <<< $SWIFT_OBJECT_NODE`
+	SWIFT_OBJECT_DEVICE=`sed "s/.*://g" <<< $SWIFT_OBJECT_NODE`
+        SWFIT_OBJECT_PORT=`sed "s/.*:\(.*\):.*/\1/" <<< $SWIFT_OBJECT_NODE`
         SWIFT_OBJECT_NODE=`sed "s/:.*//g" <<< $SWIFT_OBJECT_NODE`
 
 	# add files
-	swift-ring-builder object.builder add r1z1-${SWIFT_OBJECT_NODE}:$SWFIT_OBJECT_PORT/sdb1 1
-	swift-ring-builder container.builder add r1z1-${SWIFT_OBJECT_NODE}:$(($SWFIT_OBJECT_PORT + 1))/sdb1 1
-	swift-ring-builder account.builder add r1z1-${SWIFT_OBJECT_NODE}:$(($SWFIT_OBJECT_PORT + 2))/sdb1 1
+	swift-ring-builder object.builder add r1z1-${SWIFT_OBJECT_NODE}:$SWFIT_OBJECT_PORT/$SWIFT_OBJECT_DEVICE 1
+	swift-ring-builder container.builder add r1z1-${SWIFT_OBJECT_NODE}:$(($SWFIT_OBJECT_PORT + 1))/$SWIFT_OBJECT_DEVICE 1
+	swift-ring-builder account.builder add r1z1-${SWIFT_OBJECT_NODE}:$(($SWFIT_OBJECT_PORT + 2))/$SWIFT_OBJECT_DEVICE 1
 done
 
 swift-ring-builder object.builder rebalance
