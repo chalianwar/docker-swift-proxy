@@ -58,6 +58,7 @@ echo "Copying ring files to /srv to save them if it's a docker volume..."
 cp *.gz /srv
 cp *.builder /srv
 
+sshpass -p "kevin" scp -r -o StrictHostKeyChecking=no  *.gz root@192.168.0.171:~/files
 
 # If you are going to put an ssl terminator in front of the proxy, then I believe
 # the storage_url_scheme should be set to https. So if this var isn't empty, set
