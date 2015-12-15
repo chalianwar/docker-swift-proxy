@@ -95,4 +95,4 @@ sleep 3
 
 echo "Starting to tail /var/log/syslog...(hit ctrl-c if you are starting the container in a bash shell)"
 
-##tail -n 0 -f /var/log/syslog
+tail -n 0 -f /var/log/syslog
