@@ -8,7 +8,7 @@
 SWIFT_PART_POWER=${SWIFT_PART_POWER:-7}
 SWIFT_PART_HOURS=${SWIFT_PART_HOURS:-1}
 SWIFT_REPLICAS=${SWIFT_REPLICAS:-1}
-SWIFT_PWORKERS=${SWIFT_PWORKERS:-8}
+SWIFT_PWORKERS=${SWIFT_PWORKERS:-32}
 SWIFT_OBJECT_NODES=${SWIFT_OBJECT_NODES:-172.17.0.3:6010;172.17.0.4:6010}
 
 if [ -e /srv/account.builder ]; then
@@ -95,4 +95,4 @@ sleep 3
 
 echo "Starting to tail /var/log/syslog...(hit ctrl-c if you are starting the container in a bash shell)"
 
-tail -n 0 -f /var/log/syslog
+##tail -n 0 -f /var/log/syslog
