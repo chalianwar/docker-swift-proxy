@@ -51,8 +51,6 @@ swift-ring-builder object.builder rebalance
 swift-ring-builder container.builder rebalance
 swift-ring-builder account.builder rebalance
 
-echo ${SWIFT_OBJECT_NODE}:$(($SWFIT_OBJECT_PORT + 2)) > temp.txt
-
 # Back these up for later use
 echo "Copying ring files to /srv to save them if it's a docker volume..."
 cp *.gz /srv
