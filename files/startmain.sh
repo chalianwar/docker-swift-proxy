@@ -10,6 +10,9 @@ SWIFT_PART_HOURS=${SWIFT_PART_HOURS:-1}
 SWIFT_REPLICAS=${SWIFT_REPLICAS:-1}
 SWIFT_PWORKERS=${SWIFT_PWORKERS:-32}
 SWIFT_OBJECT_NODES=${SWIFT_OBJECT_NODES:-172.17.0.3:6010:sdb1;172.17.0.4:6010:sdd1}
+SWIFT_SCP_COPY=${SWIFT_SCP_COPY:-root@192.168.0.171:~/files:abc123}
+
+
 
 if [ -e /srv/account.builder ]; then
 	echo "Ring files already exist in /srv, copying them to /etc/swift..."
@@ -56,7 +59,11 @@ echo "Copying ring files to /srv to save them if it's a docker volume..."
 cp *.gz /srv
 cp *.builder /srv
 
-sshpass -p "kevin" scp -r -o StrictHostKeyChecking=no  *.gz root@192.168.0.171:~/files
+PASSWORD==`sed "s/.*://g" <<< $SWIFT_SCP_COPY`
+PATH=`sed "s/.*:\(.*\):.*/\1/" <<< $SWIFT_SCP_COPY`
+IPADDR=`sed "s/:.*//g" <<< $SWIFT_SCP_COPY`
+
+sshpass -p $PASSWORD scp -r -o StrictHostKeyChecking=no  *.gz $IPADDR:$PATH
 
 # If you are going to put an ssl terminator in front of the proxy, then I believe
 # the storage_url_scheme should be set to https. So if this var isn't empty, set
