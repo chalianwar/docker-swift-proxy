@@ -61,7 +61,7 @@ cp *.builder /srv
 
 PASSWORD=`sed "s/.*://g" <<< $SWIFT_SCP_COPY`
 PATH=`sed "s/.*:\(.*\):.*/\1/" <<< $SWIFT_SCP_COPY`
-IPADDR=`sed "s/:.*//g" <<< $SWIFT_SCP_COPY`
+SCPHOST=`sed "s/:.*//g" <<< $SWIFT_SCP_COPY`
 
 sshpass -p $PASSWORD scp -r -o StrictHostKeyChecking=no  *.gz $IPADDR:$PATH
 
