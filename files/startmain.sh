@@ -59,7 +59,7 @@ echo "Copying ring files to /srv to save them if it's a docker volume..."
 cp *.gz /srv
 cp *.builder /srv
 
-PASSWORD==`sed "s/.*://g" <<< $SWIFT_SCP_COPY`
+PASSWORD=`sed "s/.*://g" <<< $SWIFT_SCP_COPY`
 PATH=`sed "s/.*:\(.*\):.*/\1/" <<< $SWIFT_SCP_COPY`
 IPADDR=`sed "s/:.*//g" <<< $SWIFT_SCP_COPY`
 
