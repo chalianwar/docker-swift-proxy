@@ -1,70 +1,40 @@
-
-=== THIS DOCUMENT IS OUTDATED ===
-
-I will update the document later.
-
----------------------------------
-
-
 #Docker OpenStack Swift onlyone
 
-This is a docker file that creates an OpenStack swift image which has only one replica and only one device. Why would this be useful? I think that Docker and OpenStack Swift go together like peas and carrots. Distributed files systems are a pain, so why not just use OpenStack Swift? Scaling is not as much of an issue with object storage. Many Docker containers, even on separate hosts, can use one OpenStack Swift container to persist files.
+This is a docker file that creates an OpenStack swift proxy image. You can
+specify the object nodes' ip, port, and storage device. Furthermore, you can
+specify the ip address, path, and password of the machine where you want to scp
+the ring files (you can use specify same machine while launching object server
+container so that object server container can have updated ring file).
 
-But then why only one replica one and one device? I think that "onlyone" is a good starting point. It will make it easy for developers to get used to using object storage instead of a file system, and when they need the eventual consistency and multiple replicas provided by a larger OpenStack Swift cluster they can work on implementing that. I don't see one replica as an issue in small systems or for a proof-of-concept because it can just be backed up.
-
-## Requirements
-
-I have only tested this using the Docking and the btrfs file system. OpenStack Swift requires a file system that has xattr capability. There are several file systems that provide this, but I don't believe that aufs is one of them. So I am using btrfs. Docker 1.0 has added support for the xfs file system, which is typically what OpenStack Swift is deployed on, so that is also an option.
 
 ## startmain.sh
 
-This Dockerfile uses supervisord to manage the processes. The most idiomatic way to use docker is one container one service, but in this particular Dockerfile we will be starting several services in the container, such as rsyslog, memcached, and all the required OpenStack Swift daemons (of which there are quite a few). So in this case we're using Docker more as a role-based system, and the roles are both a swift proxy and swift storage, ie. a swift "onlyone."" All of the required Swift services are running in this one container.
+This Dockerfile uses supervisord to manage the processes.
+Dockerfile we will be starting multiple services in the container, such as
+rsyslog, memcached, and the required OpenStack Swift daemons for launching
+swift proxy.
+
 
 ## Usage
 
-I suggest using the data container methodology.
-
-So first we create a data only container for /srv.
 
 ```bash
-vagrant@host1:~$ docker run -v /srv --name SWIFT_DATA busybox
+hulk0@host1:~$ docker run -d -p 12345:8080 -e SWIFT_OBJECT_NODES="192.168.0.153:6010:sdb1;192.168.0.153:5010:sdd1;192.168.0.154:6010:sdb1" -e SWIFT_PWORKERS=64  -e SWIFT_SCP_COPY=root@192.168.0.171:~/files:kevin -t alivt/swift-proxy
 ```
 
-Now that we have a data container, we can use the "--volumes-from" option when creating the "onlyone" container. Note that in this case I've called the image built from this docker file "alivt/docker-swift-onlyone".
+Over here, we mapped 8080 port of container to port 12345 on host. We specified
+three nodes to be added as object servers. Please note that two of these containers are runing
+on same machine (192.168.0.153). We separate them based on the object, account, and container port mapping
+from container to host. One container maps 6010:6010, 6011:6011, 6012:6012 whereas other
+container used 5010:6010, 5011:6011, and 5012:6012. Also note that we mentioned only one port and next
+two are calculated automatically by adding 1 and 2. Similarly, storage device that container
+can use for storing the data in case of each container is also specified. Please, be sure you specify
+the correct device which has enough disk space. You can create your own device using following as well.
 
-```bash
-vagrant@host1:~$ ID=$(docker run -d -p 12345:8080 --volumes-from SWIFT_DATA -t alivt/docker-swift-onlyone)
-```
 
-With that container running we can now check the logs.
 
-```bash
-vagrant@host1:~$ docker logs $ID
-Device d0r1z1-127.0.0.1:6010R127.0.0.1:6010/sdb1_"" with 1.0 weight got id 0
-Reassigned 128 (100.00%) partitions. Balance is now 0.00.
-Device d0r1z1-127.0.0.1:6011R127.0.0.1:6011/sdb1_"" with 1.0 weight got id 0
-Reassigned 128 (100.00%) partitions. Balance is now 0.00.
-Device d0r1z1-127.0.0.1:6012R127.0.0.1:6012/sdb1_"" with 1.0 weight got id 0
-Reassigned 128 (100.00%) partitions. Balance is now 0.00.
-WARNING: Unable to modify file descriptor limit.  Running as non-root?
-Starting proxy-server...(/etc/swift/proxy-server.conf)
-Starting container-server...(/etc/swift/container-server.conf)
-Starting account-server...(/etc/swift/account-server.conf)
-Starting object-server...(/etc/swift/object-server.conf)
-WARNING: Unable to modify file descriptor limit.  Running as non-root?
-Starting container-updater...(/etc/swift/container-server.conf)
-Starting account-auditor...(/etc/swift/account-server.conf)
-Starting object-replicator...(/etc/swift/object-server.conf)
-Starting container-replicator...(/etc/swift/container-server.conf)
-Starting object-auditor...(/etc/swift/object-server.conf)
-Unable to locate config for object-expirer
-Starting container-auditor...(/etc/swift/container-server.conf)
-Starting account-replicator...(/etc/swift/account-server.conf)
-Starting account-reaper...(/etc/swift/account-server.conf)
-Starting container-sync...(/etc/swift/container-server.conf)
-Starting object-updater...(/etc/swift/object-server.conf)
-Starting to tail /var/log/syslog...(hit ctrl-c if you are starting the container in a bash shell)
-```
+
+
 
 At this point OpenStack Swift is running.
 
