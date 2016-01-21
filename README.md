@@ -1,3 +1,9 @@
+=== THIS DOCUMENT IS OUTDATED ===
+
+Will be updated soon.
+
+---------------------------------
+
 #Docker OpenStack Swift onlyone
 
 This is a docker file that creates an OpenStack swift proxy image. You can
