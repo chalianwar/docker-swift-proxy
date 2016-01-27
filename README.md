@@ -40,7 +40,7 @@ the correct device which has enough disk space. Using incorrect device can be ca
 SWIFT_PWORKERS is used to set the proxy workers dynamically.
 
 The ring files created at the proxy server needs to be copied to the object servers as well. SWIFT_SCP_COPY
-contains the remote location path where ring files can be copied to so that when we
+contains the remote location path where ring files can be copied to so that we
 can copy these files before launching object, container, and account servers on object servers. root@192.168.0.171:~/files is the remote path, whereas kevin is the `scp password`.
 
 At this point OpenStack Swift proxy is running.
@@ -49,7 +49,7 @@ At this point OpenStack Swift proxy is running.
 ```bash
 hulk0@host1:~$ docker ps
 CONTAINER ID        IMAGE                                     COMMAND                CREATED             STATUS              PORTS                     NAMES
-4941f8cd8b48        alivt/docker-swift-onlyone:latest   /bin/sh -c /usr/loca   58 seconds ago      Up 57 seconds       0.0.0.0:12345->8080/tcp   hopeful_brattain
+f7bd815a49ee        alivt/swift-proxy   "/bin/sh -c /usr/loc   4 seconds ago       Up 2 seconds        0.0.0.0:12345->8080/tcp   kickass_bohr
 ```
 
 Next, we need to launch object server containers on the machines we specified. To launch object servers please look at the following:
@@ -64,10 +64,11 @@ hulk0@host1:~$ swift -A http://127.0.0.1:12345/auth/v1.0 -U test:tester -K testi
     Containers: 0
        Objects: 0
          Bytes: 0
+ Accept-Ranges: bytes
+    Connection: keep-alive
+   X-Timestamp: 1450494080.48790
+    X-Trans-Id: tx8a5e8267911a4ac99f01c-0056a89c11
   Content-Type: text/plain; charset=utf-8
-   X-Timestamp: 1402463864.77057
-    X-Trans-Id: tx4e7861ebab8244c09dad9-005397e678
-X-Put-Timestamp: 1402463864.77057
 ```
 
 Try uploading a file:
