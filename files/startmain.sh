@@ -63,7 +63,7 @@ SCPPASSWORD=`sed "s/.*://g" <<< $SWIFT_SCP_COPY`
 SCPPATH=`sed "s/.*:\(.*\):.*/\1/" <<< $SWIFT_SCP_COPY`
 SCPHOST=`sed "s/:.*//g" <<< $SWIFT_SCP_COPY`
 
-#sshpass -p $SCPPASSWORD scp -r -o StrictHostKeyChecking=no  *.gz $SCPHOST:$SCPPATH
+sshpass -p $SCPPASSWORD scp -r -o StrictHostKeyChecking=no  *.gz $SCPHOST:$SCPPATH
 
 # If you are going to put an ssl terminator in front of the proxy, then I believe
 # the storage_url_scheme should be set to https. So if this var isn't empty, set
