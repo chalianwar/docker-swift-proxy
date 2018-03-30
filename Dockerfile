@@ -31,4 +31,4 @@ RUN chmod 755 /usr/local/bin/*.sh
 
 EXPOSE 8080
 
-CMD /usr/local/bin/startmain.sh
+#CMD /usr/local/bin/startmain.sh
