@@ -1,4 +1,4 @@
-#Docker OpenStack Swift Proxy Server
+##Docker OpenStack Swift Proxy Server
 
 This is a docker file that creates an OpenStack swift proxy image. You can
 specify the object nodes' ip, port, and storage device. Furthermore, you can
